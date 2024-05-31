@@ -1,0 +1,24 @@
+{
+  "name": "createapi",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "migrate": "sequelize-cli db:migrate",
+    "migrate-prod": "sequelize-cli db:migrate --production",
+    "seed": "sequelize-cli db:seed:all",
+    "start": "node index.js"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "convert-csv-to-json": "^2.47.0",
+    "dotenv": "^16.4.5",
+    "express": "^4.19.2",
+    "mysql2": "^3.10.0",
+    "sequelize": "^6.37.3",
+    "sequelize-cli": "^6.6.2"
+  }
+}
