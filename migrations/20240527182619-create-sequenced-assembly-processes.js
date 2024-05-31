@@ -12,7 +12,7 @@ module.exports = {
       sequenced_assembly_id: {
         type: Sequelize.INTEGER,
         references: {         // Agregamos la referencia a la tabla Machines
-          model: 'sequenced_assemblies',
+          model: 'Sequenced_Assemblies',
           key: 'id'
         },
         onUpdate: 'CASCADE',  // Acción a realizar cuando el id de la máquina asociada se actualiza
