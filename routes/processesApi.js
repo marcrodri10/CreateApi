@@ -29,13 +29,13 @@ router.get('/:material_name', async (req, res) => {
             }
         });
 
-        const data = await getProcess(process_, material.id, [{'material_id': material.id, 'material_name': material.material_name, 'extras': []}])
-        .then(data => {
-            
-            return printSequence(data)
-        });
+        const data = await getProcess(process_, material.id, [{ 'material_id': material.id, 'material_name': material.material_name, 'extras': [] }])
+            .then(data => {
 
-        res.status(200).json({ data});
+                return printSequence(data)
+            });
+
+        res.status(200).json({ data });
     } catch (err) {
         res.status(500).json({ message: 'Ha habido un error: ' + err.message });
     }
@@ -46,27 +46,27 @@ async function getProcess(process, original, currentPath, paths = []) {
     for (let element of process) {
         const material = await Materials.findByPk(element.input_material)
         const machine = await Machines.findByPk(element.machine_id)
-        
-        
 
-        const newPath = [...currentPath, {'id': element.id, 'material_id': element.input_material, 'material_name': material.material_name, 'machine_id': element.machine_id, 'machine_name': machine.machine_name, 'extras': []}];
-        
+
+
+        const newPath = [...currentPath, { 'id': element.id, 'material_id': element.input_material, 'material_name': material.material_name, 'machine_id': element.machine_id, 'machine_name': machine.machine_name, 'extras': [] }];
+
         const extras = await Extras.findAll({
             where: {
                 process_id: element.id,
             }
-            
+
         })
-        
-        
-        if(extras.length > 0) {
-            for(let extra in extras){
+
+
+        if (extras.length > 0) {
+            for (let extra in extras) {
                 const materialExtra = await Materials.findByPk(extras[extra].material_id);
-                newPath[newPath.length - 1][`extras`].push({'material_id': extras[extra].material_id, 'material_name': materialExtra.material_name, 'quantity': extras[extra].extra_quantity});
-                
+                newPath[newPath.length - 1][`extras`].push({ 'material_id': extras[extra].material_id, 'material_name': materialExtra.material_name, 'quantity': extras[extra].extra_quantity });
+
             }
         }
-        
+
 
         if (element.input_material !== original) {
             const materialProcess = await Processes.findAll({
@@ -94,32 +94,41 @@ async function getProcess(process, original, currentPath, paths = []) {
     return paths;
 }
 
-function printSequence(sequence){
+function printSequence(sequence) {
     let printSequence = [];
 
-    for(let element in sequence){
-        let sequenceProcess = [];
-        let c = 1;
-        for(let subProcess of sequence[element]){
-            console.log(subProcess);
-            if(subProcess.extras.length > 0) {
-                for(let extra in subProcess.extras){
-                    sequenceProcess.unshift(`Extra: ${subProcess.extras[extra].material_name} ,  ${subProcess.extras[extra].quantity}`)
+    for (let element in sequence) {
+        let sequenceProcess = {}
+        let sequenceProcessString = "";
+
+        for (let subProcess = Object.entries(sequence[element]).length - 1; subProcess >= 0; subProcess--) {
+
+            sequenceProcessString += sequence[element][subProcess].material_name
+
+            if (subProcess != 0) sequenceProcessString += ' => '
+
+            if (sequence[element][subProcess].machine_name) sequenceProcessString += (sequence[element][subProcess].machine_name)
+
+            if (sequence[element][subProcess].extras.length > 0) {
+                for (let extra in sequence[element][subProcess].extras) {
+                    sequenceProcessString += ` [Extra ${parseInt(extra) + 1}: ${sequence[element][subProcess].extras[extra].material_name} | ` ;
+                    
+                    if([93, 94].includes(sequence[element][subProcess].extras[extra].material_id)){
+                        sequenceProcessString += `Cantidad: ${sequence[element][subProcess].extras[extra].quantity} mb]`;
+                    }
+                    else sequenceProcessString += `Cantidad: ${sequence[element][subProcess].extras[extra].quantity}]`;
                 }
-                //sequenceProcess.unshift(subProcess.extras)
+
             }
-            if(subProcess.machine_name) sequenceProcess.unshift(subProcess.machine_name)
 
-            if(c != 1) sequenceProcess.unshift('=>')
+            if (subProcess != 0) sequenceProcessString += ' => '
 
-            sequenceProcess.unshift(subProcess.material_name)
 
-            if(c != sequence[element].length) sequenceProcess.unshift('=>')
 
-            c++;
+
         }
-        printSequence.push(sequenceProcess)
-        
+        sequenceProcess[`PROCESS ${parseInt(element) + 1}`] = sequenceProcessString;
+        printSequence.push(sequenceProcess);
     }
     return printSequence;
 }
